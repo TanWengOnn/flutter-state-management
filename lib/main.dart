@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:state_management/calculator.dart';
 import 'package:state_management/counter_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/services.dart';
 
 void main() {
   runApp(MaterialApp(
@@ -8,10 +10,21 @@ void main() {
     theme: ThemeData(
       primarySwatch: Colors.blue,
     ),
-    home: BlocProvider(
-      create: (context) => CounterCubit(),
-      child: const HomePage(),
-    ),
+    // home: BlocProvider(
+    //   create: (context) => CounterCubit(),
+    //   child: const HomePage(),
+    // ),
+    initialRoute: "/",
+    onGenerateRoute: (settings) {
+      switch(settings.name){
+        case '/':
+          return MaterialPageRoute(
+              builder: (context) => BlocProvider(
+                  create: (context) => CounterCubit(),
+                  child: const HomePage())
+          );
+      }
+    },
   )
   );
 }
@@ -20,12 +33,12 @@ class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<HomePage> createState() => HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
-  // int counter = 2000;
+class HomePageState extends State<HomePage> {
   late CounterCubit cubit;
+  TextEditingController numController = TextEditingController();
 
   @override
   void didChangeDependencies() {
@@ -34,8 +47,11 @@ class _HomePageState extends State<HomePage> {
     super.didChangeDependencies();
   }
 
+
+
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
         title: Text("counter"),
@@ -43,7 +59,7 @@ class _HomePageState extends State<HomePage> {
       body:  Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          BlocConsumer(
+          BlocConsumer<CounterCubit, int>(
             bloc: cubit,
             listener: (context, state) {
                 final snackBar = SnackBar(content: Text("State is reached"));
@@ -56,6 +72,11 @@ class _HomePageState extends State<HomePage> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
+                        TextField(
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                          controller: numController,
+                        ),
                         Text("$state", textScaleFactor: 10,),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -89,6 +110,47 @@ class _HomePageState extends State<HomePage> {
                                 onPrimary: Colors.black,
                               ),
                               child: Text("Reset"),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.push(context,
+                                    MaterialPageRoute(
+                                        builder: (context) => Calculator(
+                                          strValue: numController.text,
+                                          counter: state,
+                                          calculate: "multiply",
+                                        )
+                                    )
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                primary: Colors.yellowAccent,
+                                onPrimary: Colors.black,
+                              ),
+                              child: Text("X"),
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.push(context,
+                                    MaterialPageRoute(
+                                        builder: (context) => Calculator(
+                                          strValue: numController.text,
+                                          counter: state,
+                                          calculate: "divide",
+                                        )
+                                    )
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                primary: Colors.yellowAccent,
+                                onPrimary: Colors.black,
+                              ),
+                              child: Text("/"),
                             ),
                           ],
                         ),
